@@ -1,7 +1,10 @@
-class sdjki : public Fijk
+class rdjki : public Fijk
 {
+    private:
+	u32 _addr;
+
     public:
-	sdjki(u08 i, u08 j, u08 k) : Fijk(0xF, i, j, k) {}
+	rdjki(u08 i, u08 j, u08 k) : Fijk(0xD, i, j, k) {}
 
 	bool execute()
 	{
@@ -12,7 +15,8 @@ class sdjki : public Fijk
 		addr += PROC.RA().u()*256;		    // Add reference address
 		assert(addr >= 0);			    // Address should be nonnegative
 		assert(addr < params::MEM::N);              // Check against hardware limit
-		MEM[addr] = PROC.X(_i);                     // Store data
+		PROC.X(_i) = MEM[addr];                     // Read data
+		_addr = addr;				    // Save read address
 	    }
 	    else
 	    {
@@ -25,6 +29,13 @@ class sdjki : public Fijk
 
 	string mnemonic() const
 	{
-	    return "sdjki";
+	    return "rdjki";
+	}
+
+	bool ops()
+	{
+	    process(new operations::agen(params::micro::Xs, _j, _k));
+	    process(new operations::rdw(_i, params::micro::Xs, _addr));
+	    return false;
 	}
 };
