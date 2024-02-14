@@ -6,6 +6,7 @@
 #include<assert.h>
 #include<vector>
 #include<map>
+#include<set>
 #include<iostream>
 #include<iomanip>
 #include<complex>
@@ -431,6 +432,7 @@ namespace CDC8600
 
     namespace instructions
     {
+#include<instructions/pass.hh>				// Pass								(p54)
 #include<instructions/jmp.hh>				// Jump to P+K                                                  (p86)
 #include<instructions/jmpz.hh>				// Jump to P + K if (Xj) equal to 0                             (p94)
 #include<instructions/jmpp.hh>				// Jump to P + K if (Xj) positive                               (p98)
@@ -454,6 +456,7 @@ namespace CDC8600
     {
 	extern u32  count;	// Current instruction count
 	extern bool target;	// Is the current instruction the target of a branch?
+	extern u32  forcealign;	// Align this instruction at a word boundary
     };
 
     extern vector<instruction*>	trace;

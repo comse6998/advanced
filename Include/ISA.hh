@@ -3,10 +3,13 @@
 
 #include <CDC8600.hh>
 
+// 0. Noops
+
+#define pass()			process(new instructions::pass(), __LINE__);
+
 // 1. Branch Facility
-#define LABEL(L)                                                                                                       \
-    L : {                                                                                                              \
-    }
+
+#define LABEL(L) L : instructions::forcealign = __LINE__; 
 
 #define jmp(L)			if (process(new  instructions::jmp   (0), __LINE__))      goto L;
 
@@ -34,11 +37,15 @@
 
 #define jmpk(Xj,k)		if (process(new instructions::jmpk   (Xj, k), __LINE__))  return;
 
+// 2. Load/store facility
+
 #define rdjki(Xi, Xj, Xk)	process(new instructions::rdjki(Xi, Xj, Xk), __LINE__);
 
 #define sdjki(Xi, Xj, Xk)	process(new instructions::sdjki(Xi, Xj, Xk), __LINE__);
 
 #define rdKj(Xj, K)		process(new instructions::rdKj(Xj, K), __LINE__);
+
+// 3. Fixed-point facility
 
 #define xkj(Xj, k)		process(new instructions::xkj(Xj, k), __LINE__);
 
@@ -51,6 +58,8 @@
 #define isjkj(Xj, Xk)		process(new instructions::isjkj(Xj, Xk), __LINE__);
 
 #define ipjkj(Xj, Xk)		process(new instructions::ipjkj(Xj, Xk), __LINE__);
+
+// 4. Floating-point facility
 
 #define fmul(Xi, Xj, Xk)	process(new instructions::fmul(Xi, Xj, Xk), __LINE__);
 

@@ -113,6 +113,7 @@ namespace CDC8600
 	PROC.RA() = (u64)( 3 * 8192 / 256);						// User data memory begins in page 3
 	instructions::count = 0;							// Instruction count starts at 0
 	instructions::target = true;							// First instruction is target of a branch
+	instructions::forcealign = 0;							// Force instruction address to align to word boundary
 	operations::count = 0;								// Operation count starts at 0
 	operations::nextdispatch = 0;							// Start dispatching operations at cycle 0
 	operations::maxcycle = 0;							// Maximum completion time observed
@@ -121,6 +122,11 @@ namespace CDC8600
 	line2addr.clear();								// Clear line -> address map
 	line2encoding.clear();								// Clear line -> encoding map
 	line2len.clear();								// Clear line -> len map
+	for (u32 i=0; i < params::micro::nBRUs; i++) units::BRUs[i].clear();		// Cluear usage of BRUs
+	for (u32 i=0; i < params::micro::nFXUs; i++) units::FXUs[i].clear();		// Cluear usage of FXUs
+	for (u32 i=0; i < params::micro::nFPUs; i++) units::FPUs[i].clear();		// Cluear usage of FPUs
+	for (u32 i=0; i < params::micro::nLDUs; i++) units::LDUs[i].clear();		// Cluear usage of LDUs
+	for (u32 i=0; i < params::micro::nSTUs; i++) units::STUs[i].clear();		// Cluear usage of STUs
     }
 
     void *memalloc
@@ -154,6 +160,7 @@ namespace CDC8600
     {
 	u32	count;
 	bool 	target;
+	u32	forcealign;
     } // namespace instructions
 
     void assignaddr
@@ -170,6 +177,13 @@ namespace CDC8600
 	    assert(instr->encoding() == line2encoding[instr->line()]);	// encoding match?
 	    assert(instr->len()      == line2len[instr->line()]);	// instruction length match?
 	}
+	else if (instructions::forcealign)				// this line has a label, so we must force a word alignment
+	{
+	    line2addr[instr->line()] = instr->line() * 8;		// this is a byte address
+	    line2encoding[instr->line()] = instr->encoding();
+	    line2len[instr->line()]      = instr->len();
+	    instructions::forcealign = 0;
+	}
 	else if (line2addr.count(instr->line() - 1)) 			// is the previous line in the map?
 	{
 	    line2addr[instr->line()]     = line2addr[instr->line() - 1] + line2len[instr->line() - 1];
@@ -181,6 +195,15 @@ namespace CDC8600
 	    line2addr[instr->line()] = instr->line() * 8;		// this is a byte address
 	    line2encoding[instr->line()] = instr->encoding();
 	    line2len[instr->line()]      = instr->len();
+	}
+
+	if (target)							// is this the target of a branch
+	{
+	    if (line2addr[instr->line()] % 8)				// is the target address word aligned?
+	    {
+		cout << "Instruction at line # " << instr->line() << " is the target of a branch but has a byte offset of " << (line2addr[instr->line()] % 8) << endl;
+		assert(false);
+	    }
 	}
     }
 
@@ -209,11 +232,12 @@ namespace CDC8600
     {
 	cout << "  instr #";
 	cout << " |    line #";
-	cout << " |                   instruction ";
+	cout << " |             instruction ";
 	cout << " |  address";
 	cout << " | encoding ";
 	cout << " |     op # ";
 	cout << " |               operation ";
+	cout << " | dispatch ";
 	cout << " |    ready ";
 	cout << " |    issue ";
 	cout << " | complete ";
@@ -221,11 +245,12 @@ namespace CDC8600
 
 	cout << "----------";
 	cout << "+-----------";
-	cout << "+--------------------------------";
+	cout << "+--------------------------";
 	cout << "+----------";
 	cout << "+-----------";
 	cout << "+-----------";
 	cout << "+--------------------------";
+	cout << "+-----------";
 	cout << "+-----------";
 	cout << "+-----------";
 	cout << "+----------";
@@ -240,7 +265,7 @@ namespace CDC8600
     {
 	cout << setw( 9) << i;
 	cout << " | " << setw( 9) << instr->line();
-	cout << " | " << setw(30) << instr->dasm();
+	cout << " | " << setw(24) << instr->dasm();
 	cout << " | " << setfill('0') << setw( 8) << hex << line2addr[instr->line()] << dec << setfill(' ');
 	if (instr->len() == 4) cout << " | "     << setfill('0') << setw(8) << hex << instr->encoding() << dec << setfill(' ');
 	if (instr->len() == 2) cout << " |     " << setfill('0') << setw(4) << hex << instr->encoding() << dec << setfill(' '); 
@@ -279,6 +304,15 @@ namespace CDC8600
 	instructions::count++;				// increment instruction counter
 	return instructions::target;			// return true if a branch is taken
     }
+
+    namespace units
+    {
+	vector<unit>	BRUs(params::micro::nBRUs);	// branch units
+	vector<unit>	FXUs(params::micro::nFXUs);	// fixed-point units
+	vector<unit>	FPUs(params::micro::nFPUs);	// floating-point units
+	vector<unit>	LDUs(params::micro::nLDUs);	// load units
+	vector<unit>	STUs(params::micro::nSTUs);	// store units
+    }; // namespace units
 
     namespace operations
     {
