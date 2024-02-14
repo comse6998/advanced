@@ -56,8 +56,8 @@ LABEL(loop) jmpz(0, end)        // if X0 (n) = 0 goto end
             isjki(5, 5, 2)      // X5 (ix) = X5 (ix) + X2 (incx)
             isjki(6, 6, 4)      // X6 (iy) = X6 (iy) + X4 (incy)
             idjkj(0, 1)         // X0 (n) = X0 (n) - 1
-            jmp(loop)		// repeat
 	    pass()		// padding
+            jmp(loop)		// repeat
 	    pass()		// padding
 	    pass()		// padding
 LABEL(end)  jmpk(15, 1)         // return to X15 (calling address) + 1

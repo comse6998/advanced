@@ -199,6 +199,13 @@ namespace CDC8600
 	if (0 == instructions::runningaddr) instructions::runningaddr = instr->line() * 8;
 	if (line2addr.count(instr->line())) return;
 
+	if (instructions::runningaddr % instr->len())
+	{
+		cout << "Instruction at line # " << instr->line() 
+		     << " has length " << instr->len() << " bytes, but has a byte offset of "
+		     << (instructions::runningaddr % 8) << endl;
+		assert(false);
+	}
 	line2addr[instr->line()] = instructions::runningaddr;
 	line2encoding[instr->line()] = instr->encoding();
 	line2len[instr->line()] = instr->len();
