@@ -1,7 +1,10 @@
 class jmp : public FjK
 {
+    private:
+	string	_label;
+
     public:
-	jmp(u32 K) : FjK(0x30, 0, K) {}
+	jmp(string L) : FjK(0x30, 0, 0) { _label = L; }
 
 	bool execute()
 	{

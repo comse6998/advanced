@@ -9,9 +9,9 @@
 
 // 1. Branch Facility
 
-#define LABEL(L) L : instructions::forcealign = __LINE__; 
+#define LABEL(L) L : instructions::forcealign = __LINE__; addlabel(#L, __LINE__); 
 
-#define jmp(L)			if (process(new  instructions::jmp   (0), __LINE__))      goto L;
+#define jmp(L)			if (process(new  instructions::jmp   (#L), __LINE__))      goto L;
 
 #define jmpa(L)			if (process(new  instructions::jmpa  (0), __LINE__))      goto L;
 

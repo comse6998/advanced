@@ -155,13 +155,55 @@ namespace CDC8600
     map<u32, u32>		line2addr;			// line -> address map
     map<u32, u32>		line2encoding;			// line -> encoding map
     map<u32, u32>		line2len;			// line -> instruction length map
+    map<string, u32>		label2line;			// label -> line map
 
     namespace instructions
     {
 	u32	count;
 	bool 	target;
 	u32	forcealign;
+	bool	labeling;
+	u32	runningaddr;
     } // namespace instructions
+
+    void addlabel
+    (
+        string label,
+	u32    line
+    )
+    {
+	if (label2line.count(label)) return;
+	label2line[label] = line;
+    }
+
+    void label
+    (
+        void (*f)()
+    )
+    {
+	line2addr.clear();
+	line2encoding.clear();
+	line2len.clear();
+	label2line.clear();
+	instructions::labeling = true;
+	instructions::runningaddr = 0;
+	f();
+	instructions::labeling = false;
+    }
+
+    void labeladdr
+    (
+        instruction*	instr
+    )
+    {
+	if (0 == instructions::runningaddr) instructions::runningaddr = instr->line() * 8;
+	if (line2addr.count(instr->line())) return;
+
+	line2addr[instr->line()] = instructions::runningaddr;
+	line2encoding[instr->line()] = instr->encoding();
+	line2len[instr->line()] = instr->len();
+	instructions::runningaddr += instr->len();
+    }
 
     void assignaddr
     /*
@@ -291,6 +333,12 @@ namespace CDC8600
 	u32 		line
     )
     {
+	if (instructions::labeling)
+	{
+	    labeladdr(instr);
+	    delete instr;
+	    return false;
+	}
 	instr->line() = line;				// save instruction line number in source file
 	assignaddr(instr, instructions::target);	// assign an address to this instruction
 	instructions::target = instr->execute();	// execute the instructions, remember if a branch is being taken
