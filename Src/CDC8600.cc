@@ -335,12 +335,14 @@ namespace CDC8600
     {
 	if (instructions::labeling)
 	{
+	    instr->line() = line;
 	    labeladdr(instr);
 	    delete instr;
 	    return false;
 	}
 	instr->line() = line;				// save instruction line number in source file
 	assignaddr(instr, instructions::target);	// assign an address to this instruction
+	instr->fixit();					// fix displacement in branches
 	instructions::target = instr->execute();	// execute the instructions, remember if a branch is being taken
 	trace.push_back(instr);				// save instruction to trace
 	if (tracing)					// run-time tracing

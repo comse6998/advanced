@@ -321,6 +321,7 @@ namespace CDC8600
 	    virtual string mnemonic() const = 0;	// mnemonic for the instruction
 	    virtual string dasm() const = 0;		// disassembly for the instruction
 	    virtual u32 encoding() const = 0;		// instruction encoding
+	    virtual void fixit() { }			// used to fix displacements in branches
 	    u32& line() { return _line; }
 	    u32& addr() { return _addr; }
     };
@@ -435,6 +436,11 @@ namespace CDC8600
 	    u32 encoding() const { return (_F << 24) + (_j << 20) + (_K << 0); }
     };
 
+    extern map<u32, u32> 	line2addr;
+    extern map<u32, u32> 	line2encoding;
+    extern map<u32, u32> 	line2len;
+    extern map<string, u32>     label2line;                     // label -> line map
+
     namespace instructions
     {
 #include<instructions/pass.hh>				// Pass								(p54)
@@ -465,10 +471,6 @@ namespace CDC8600
     };
 
     extern vector<instruction*>	trace;
-
-    extern map<u32, u32> line2addr;
-    extern map<u32, u32> line2encoding;
-    extern map<u32, u32> line2len;
 
     extern bool process(instruction*, u32);
 
