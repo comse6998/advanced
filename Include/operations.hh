@@ -134,7 +134,7 @@ namespace CDC8600
 		u64 ready() const { return 0; }
 		u64 target(u64 cycle) { REGready[_j] = cycle; }
 		u64 latency() const { return 2; }
-		u64 throughput() const { return 1; }
+		u64 throughput() const { return 2; }
 		string mnemonic() const { return "xkj"; }
 		string dasm() const { return mnemonic() + "(" + to_string(_j) + ", " + to_string(_k) + ")"; }
 	};
@@ -216,7 +216,7 @@ namespace CDC8600
 		u64 ready() const { return max(max(REGready[_k], REGready[_j]), max(REGready[params::micro::RA], REGready[params::micro::FL])); }
 		u64 target(u64 cycle) { REGready[_i] = cycle; }
 		u64 latency() const { return 2; }
-		u64 throughput() const { return 1; }
+		u64 throughput() const { return 2; }
 		string mnemonic() const { return "agen"; }
 		string dasm() const { return mnemonic() + "(" + to_string(_i) + ", " + to_string(_j) + ", " + to_string(_k) + ")"; }
 	};
